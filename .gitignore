@@ -1,0 +1,6 @@
+mtp_env/
+__pycache__/
+*.pyc
+
+Data/
+Results/
