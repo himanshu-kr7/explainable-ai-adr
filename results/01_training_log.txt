@@ -1,0 +1,83 @@
+==========================================
+SLURM_CLUSTER_NAME = paramaryabhatta
+SLURM_ARRAY_JOB_ID = 
+SLURM_ARRAY_TASK_ID = 
+SLURM_ARRAY_TASK_COUNT = 
+SLURM_ARRAY_TASK_MAX = 
+SLURM_ARRAY_TASK_MIN = 
+SLURM_JOB_ACCOUNT = iitp
+SLURM_JOB_ID = 38980
+SLURM_JOB_NAME = MTP_Train
+SLURM_JOB_NODELIST = ragpu006
+SLURM_JOB_USER = himanshuk_iitp
+SLURM_JOB_UID = 65759
+SLURM_JOB_PARTITION = gpu
+SLURM_TASK_PID = 597811
+SLURM_SUBMIT_DIR = /home/himanshuk_iitp/MTP_Final
+SLURM_CPUS_ON_NODE = 4
+SLURM_NTASKS = 
+SLURM_TASK_PID = 597811
+==========================================
+Job started!
+/home/himanshuk_iitp/miniconda3/envs/mtp_env/lib/python3.10/site-packages/torch_geometric/loader/link_neighbor_loader.py:252: UserWarning: Using 'NeighborSampler' without a 'pyg-lib' installation is deprecated and will be removed soon. Please install 'pyg-lib' for accelerated neighborhood sampling
+  neighbor_sampler = NeighborSampler(
+--- LAUNCHING MTP JOB ON PARAM ---
+✅ Device: cuda
+✅ Graph Loaded: 90067 nodes, 5716123 edges.
+🎯 Target Edge: ('drug', 'causes_thrombocytopenia', 'drug')
+🔪 Purging all other ADR edges to prevent Multiplex Leakage...
+🛠️ Splitting data (is_undirected=True to prevent leakage)...
+🔄 Creating DataLoaders...
+🚀 Starting Training Loop...
+Epoch: 01 | Loss: 1302.4045 | Val AUC: 0.6987 | Time: 11.8s
+Epoch: 02 | Loss: 559.2866 | Val AUC: 0.7329 | Time: 3.1s
+Epoch: 03 | Loss: 306.6944 | Val AUC: 0.7607 | Time: 3.1s
+Epoch: 04 | Loss: 116.7937 | Val AUC: 0.7671 | Time: 3.1s
+Epoch: 05 | Loss: 77.4719 | Val AUC: 0.7628 | Time: 3.1s
+Epoch: 06 | Loss: 44.9508 | Val AUC: 0.7852 | Time: 3.1s
+Epoch: 07 | Loss: 33.1755 | Val AUC: 0.8745 | Time: 3.1s
+Epoch: 08 | Loss: 21.3732 | Val AUC: 0.9216 | Time: 3.1s
+Epoch: 09 | Loss: 14.9343 | Val AUC: 0.9553 | Time: 3.1s
+Epoch: 10 | Loss: 10.9523 | Val AUC: 0.9767 | Time: 3.1s
+Epoch: 11 | Loss: 8.2860 | Val AUC: 0.9854 | Time: 3.1s
+Epoch: 12 | Loss: 7.1172 | Val AUC: 0.9893 | Time: 3.1s
+Epoch: 13 | Loss: 5.4044 | Val AUC: 0.9857 | Time: 3.1s
+Epoch: 14 | Loss: 4.4902 | Val AUC: 0.9851 | Time: 3.1s
+Epoch: 15 | Loss: 3.9530 | Val AUC: 0.9849 | Time: 3.1s
+Epoch: 16 | Loss: 3.3277 | Val AUC: 0.9812 | Time: 3.1s
+Epoch: 17 | Loss: 2.7949 | Val AUC: 0.9832 | Time: 3.1s
+Epoch: 18 | Loss: 2.1549 | Val AUC: 0.9873 | Time: 3.1s
+Epoch: 19 | Loss: 1.9835 | Val AUC: 0.9831 | Time: 3.1s
+Epoch: 20 | Loss: 2.1619 | Val AUC: 0.9809 | Time: 3.1s
+Epoch: 21 | Loss: 1.8282 | Val AUC: 0.9788 | Time: 3.1s
+Epoch: 22 | Loss: 2.1781 | Val AUC: 0.9787 | Time: 3.1s
+Epoch: 23 | Loss: 1.5717 | Val AUC: 0.9810 | Time: 3.1s
+Epoch: 24 | Loss: 1.4803 | Val AUC: 0.9808 | Time: 3.1s
+Epoch: 25 | Loss: 1.4900 | Val AUC: 0.9850 | Time: 3.1s
+Epoch: 26 | Loss: 1.2668 | Val AUC: 0.9855 | Time: 3.1s
+Epoch: 27 | Loss: 1.3292 | Val AUC: 0.9851 | Time: 3.1s
+Epoch: 28 | Loss: 1.0253 | Val AUC: 0.9850 | Time: 3.1s
+Epoch: 29 | Loss: 1.2101 | Val AUC: 0.9872 | Time: 3.1s
+Epoch: 30 | Loss: 0.9788 | Val AUC: 0.9789 | Time: 3.1s
+Epoch: 31 | Loss: 0.9739 | Val AUC: 0.9808 | Time: 3.1s
+Epoch: 32 | Loss: 0.9514 | Val AUC: 0.9768 | Time: 3.1s
+Epoch: 33 | Loss: 0.9505 | Val AUC: 0.9788 | Time: 3.1s
+Epoch: 34 | Loss: 0.8918 | Val AUC: 0.9872 | Time: 3.1s
+Epoch: 35 | Loss: 0.9072 | Val AUC: 0.9829 | Time: 3.1s
+Epoch: 36 | Loss: 0.8013 | Val AUC: 0.9830 | Time: 3.1s
+Epoch: 37 | Loss: 0.8059 | Val AUC: 0.9825 | Time: 3.1s
+Epoch: 38 | Loss: 0.7750 | Val AUC: 0.9828 | Time: 3.1s
+Epoch: 39 | Loss: 0.7578 | Val AUC: 0.9828 | Time: 3.1s
+Epoch: 40 | Loss: 0.8160 | Val AUC: 0.9787 | Time: 3.1s
+Epoch: 41 | Loss: 0.6946 | Val AUC: 0.9829 | Time: 3.2s
+Epoch: 42 | Loss: 0.7401 | Val AUC: 0.9795 | Time: 3.1s
+Epoch: 43 | Loss: 0.7323 | Val AUC: 0.9830 | Time: 3.1s
+Epoch: 44 | Loss: 0.7936 | Val AUC: 0.9808 | Time: 3.1s
+Epoch: 45 | Loss: 0.7313 | Val AUC: 0.9850 | Time: 3.1s
+Epoch: 46 | Loss: 0.6853 | Val AUC: 0.9871 | Time: 3.1s
+Epoch: 47 | Loss: 0.5819 | Val AUC: 0.9824 | Time: 3.1s
+Epoch: 48 | Loss: 0.6591 | Val AUC: 0.9719 | Time: 3.1s
+Epoch: 49 | Loss: 0.5911 | Val AUC: 0.9800 | Time: 3.1s
+Epoch: 50 | Loss: 0.6548 | Val AUC: 0.9811 | Time: 3.1s
+✅ Model Saved! Ready for Phase 3 (Explainability).
+Job finished!

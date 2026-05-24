@@ -1,0 +1,25 @@
+==========================================
+SLURM_CLUSTER_NAME = paramaryabhatta
+SLURM_ARRAY_JOB_ID = 
+SLURM_ARRAY_TASK_ID = 
+SLURM_ARRAY_TASK_COUNT = 
+SLURM_ARRAY_TASK_MAX = 
+SLURM_ARRAY_TASK_MIN = 
+SLURM_JOB_ACCOUNT = iitp
+SLURM_JOB_ID = 38640
+SLURM_JOB_NAME = mtp_explain
+SLURM_JOB_NODELIST = ragpu006
+SLURM_JOB_USER = himanshuk_iitp
+SLURM_JOB_UID = 65759
+SLURM_JOB_PARTITION = gpu
+SLURM_TASK_PID = 557887
+SLURM_SUBMIT_DIR = /home/himanshuk_iitp/MTP_Final
+SLURM_CPUS_ON_NODE = 4
+SLURM_NTASKS = 
+SLURM_TASK_PID = 557887
+==========================================
+--- LAUNCHING CONTAMINATION TEST ---
+Confidence WITH the answer key in the graph: 78.12%
+Confidence WITHOUT the answer key in the graph: 78.12%
+
+Total Confidence Drop when blinded: 0.00%

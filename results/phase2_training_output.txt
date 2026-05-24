@@ -1,0 +1,87 @@
+==========================================
+SLURM_CLUSTER_NAME = paramaryabhatta
+SLURM_ARRAY_JOB_ID = 
+SLURM_ARRAY_TASK_ID = 
+SLURM_ARRAY_TASK_COUNT = 
+SLURM_ARRAY_TASK_MAX = 
+SLURM_ARRAY_TASK_MIN = 
+SLURM_JOB_ACCOUNT = iitp
+SLURM_JOB_ID = 61292
+SLURM_JOB_NAME = MTP_TAG_Full
+SLURM_JOB_NODELIST = ragpu005
+SLURM_JOB_USER = himanshuk_iitp
+SLURM_JOB_UID = 65759
+SLURM_JOB_PARTITION = gpu
+SLURM_TASK_PID = 916593
+SLURM_SUBMIT_DIR = /home/himanshuk_iitp/MTP_Phase2
+SLURM_CPUS_ON_NODE = 4
+SLURM_NTASKS = 
+SLURM_TASK_PID = 916593
+==========================================
+======================================================
+🚀 Starting MTP Phase 2: Decagon + ClinicalBERT TAG
+Job execution started!
+======================================================
+INFO - Initializing Phase 2 training protocol on device: cuda
+INFO - Graph topology loaded. Nodes: 90067, Edges: 5716123
+INFO - 🚨 INITIATING TEXT-ATTRIBUTED GRAPH (TAG) INJECTION 🚨
+INFO - ✅ Success! Replaced dummy features with 768-dimensional NLP embeddings.
+INFO - Target prediction edge isolated: ('drug', 'causes_thrombocytopenia', 'drug')
+INFO - Applying RandomLinkSplit...
+/home/himanshuk_iitp/miniconda3/envs/mtp_env/lib/python3.10/site-packages/torch_geometric/loader/link_neighbor_loader.py:252: UserWarning: Using 'NeighborSampler' without a 'pyg-lib' installation is deprecated and will be removed soon. Please install 'pyg-lib' for accelerated neighborhood sampling
+  neighbor_sampler = NeighborSampler(
+INFO - 🚀 Initiating MTP Phase 2 Training Loop...
+INFO - Epoch: 01 | Loss: 1050.0974 | Val AUC: 0.7423 | Time: 7.6s
+INFO - Epoch: 02 | Loss: 352.6300 | Val AUC: 0.7555 | Time: 0.6s
+INFO - Epoch: 03 | Loss: 199.8135 | Val AUC: 0.7789 | Time: 0.6s
+INFO - Epoch: 04 | Loss: 93.6571 | Val AUC: 0.7512 | Time: 0.6s
+INFO - Epoch: 05 | Loss: 62.7991 | Val AUC: 0.8231 | Time: 0.6s
+INFO - Epoch: 06 | Loss: 26.2766 | Val AUC: 0.8172 | Time: 0.6s
+INFO - Epoch: 07 | Loss: 23.0896 | Val AUC: 0.8424 | Time: 0.6s
+INFO - Epoch: 08 | Loss: 14.6464 | Val AUC: 0.9673 | Time: 0.6s
+INFO - Epoch: 09 | Loss: 7.0901 | Val AUC: 0.9774 | Time: 0.6s
+INFO - Epoch: 10 | Loss: 5.3295 | Val AUC: 0.9751 | Time: 0.6s
+INFO - Epoch: 11 | Loss: 3.7912 | Val AUC: 0.9793 | Time: 0.6s
+INFO - Epoch: 12 | Loss: 2.6847 | Val AUC: 0.9769 | Time: 0.6s
+INFO - Epoch: 13 | Loss: 2.2894 | Val AUC: 0.9864 | Time: 0.6s
+INFO - Epoch: 14 | Loss: 1.9380 | Val AUC: 0.9861 | Time: 0.6s
+INFO - Epoch: 15 | Loss: 1.5509 | Val AUC: 0.9863 | Time: 0.6s
+INFO - Epoch: 16 | Loss: 1.2945 | Val AUC: 0.9762 | Time: 0.6s
+INFO - Epoch: 17 | Loss: 1.3122 | Val AUC: 0.9903 | Time: 0.6s
+INFO - Epoch: 18 | Loss: 1.0894 | Val AUC: 0.9902 | Time: 0.6s
+INFO - Epoch: 19 | Loss: 1.0375 | Val AUC: 0.9901 | Time: 0.6s
+INFO - Epoch: 20 | Loss: 1.0808 | Val AUC: 0.9874 | Time: 0.6s
+INFO - Epoch: 21 | Loss: 0.8692 | Val AUC: 0.9693 | Time: 0.6s
+INFO - Epoch: 22 | Loss: 0.9153 | Val AUC: 0.9925 | Time: 0.6s
+INFO - Epoch: 23 | Loss: 0.7116 | Val AUC: 0.9904 | Time: 0.6s
+INFO - Epoch: 24 | Loss: 0.7789 | Val AUC: 0.9922 | Time: 0.6s
+INFO - Epoch: 25 | Loss: 0.7690 | Val AUC: 0.9907 | Time: 0.6s
+INFO - Epoch: 26 | Loss: 0.6383 | Val AUC: 0.9897 | Time: 0.6s
+INFO - Epoch: 27 | Loss: 0.6894 | Val AUC: 0.9900 | Time: 0.6s
+INFO - Epoch: 28 | Loss: 0.6445 | Val AUC: 0.9900 | Time: 0.6s
+INFO - Epoch: 29 | Loss: 0.6720 | Val AUC: 0.9918 | Time: 0.6s
+INFO - Epoch: 30 | Loss: 0.5750 | Val AUC: 0.9914 | Time: 0.6s
+INFO - Epoch: 31 | Loss: 0.5381 | Val AUC: 0.9891 | Time: 0.6s
+INFO - Epoch: 32 | Loss: 0.5257 | Val AUC: 0.9914 | Time: 0.6s
+INFO - Epoch: 33 | Loss: 0.5841 | Val AUC: 0.9898 | Time: 0.6s
+INFO - Epoch: 34 | Loss: 0.5433 | Val AUC: 0.9895 | Time: 0.6s
+INFO - Epoch: 35 | Loss: 0.5482 | Val AUC: 0.9892 | Time: 0.6s
+INFO - Epoch: 36 | Loss: 0.5801 | Val AUC: 0.9839 | Time: 0.6s
+INFO - Epoch: 37 | Loss: 0.5776 | Val AUC: 0.9906 | Time: 0.6s
+INFO - Epoch: 38 | Loss: 0.4853 | Val AUC: 0.9902 | Time: 0.6s
+INFO - Epoch: 39 | Loss: 0.4988 | Val AUC: 0.9914 | Time: 0.6s
+INFO - Epoch: 40 | Loss: 0.4739 | Val AUC: 0.9889 | Time: 0.6s
+INFO - Epoch: 41 | Loss: 0.4527 | Val AUC: 0.9908 | Time: 0.6s
+INFO - Epoch: 42 | Loss: 0.4452 | Val AUC: 0.9913 | Time: 0.6s
+INFO - Epoch: 43 | Loss: 0.4427 | Val AUC: 0.9883 | Time: 0.6s
+INFO - Epoch: 44 | Loss: 0.4890 | Val AUC: 0.9892 | Time: 0.7s
+INFO - Epoch: 45 | Loss: 0.4825 | Val AUC: 0.9902 | Time: 0.6s
+INFO - Epoch: 46 | Loss: 0.4228 | Val AUC: 0.9847 | Time: 0.6s
+INFO - Epoch: 47 | Loss: 0.4333 | Val AUC: 0.9863 | Time: 0.6s
+INFO - Epoch: 48 | Loss: 0.4799 | Val AUC: 0.9853 | Time: 0.6s
+INFO - Epoch: 49 | Loss: 0.4494 | Val AUC: 0.9860 | Time: 0.6s
+INFO - Epoch: 50 | Loss: 0.4358 | Val AUC: 0.9897 | Time: 0.6s
+INFO - ✅ Phase 2 complete. TAG Weights saved to Results/Phase2_TAG_Model.pth
+======================================================
+✅ Job finished successfully!
+======================================================

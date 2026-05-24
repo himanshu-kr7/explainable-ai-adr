@@ -62,10 +62,28 @@ class FullMTPModel(torch.nn.Module):
         return self.decoder(z_src, z_dst) / 15.0
 
 
-def build_name_lookup(nodes_csv_path, primekg_csv_path):
-    """Construct a (node_type, type_local_idx) -> human-readable name lookup
-    that mirrors the indexing scheme used during graph construction.
+def build_purged_graph(data, target_edge_type):
+    """Build a HeteroData containing all node types and only:
+        - non-causes_* (structural) edge types, plus
+        - the single target causes_* edge type.
+    This matches the purging that train_job.py performs.
     """
+    data_purged = HeteroData()
+    for nt in data.node_types:
+        if hasattr(data[nt], 'x') and data[nt].x is not None:
+            data_purged[nt].x = data[nt].x
+        data_purged[nt].num_nodes = data[nt].num_nodes
+    purged_count = 0
+    for et in data.edge_types:
+        if et[1].startswith('causes_') and et != target_edge_type:
+            purged_count += 1
+            continue
+        data_purged[et].edge_index = data[et].edge_index
+    return data_purged, purged_count
+
+
+def build_name_lookup(nodes_csv_path, primekg_csv_path):
+    """Construct a (node_type, type_local_idx) -> human-readable name lookup."""
     print("Building name lookup...")
     nodes_df = pd.read_csv(nodes_csv_path)
     nodes_df['node_id'] = nodes_df['node_id'].astype(str).str.strip()
@@ -94,25 +112,23 @@ def build_name_lookup(nodes_csv_path, primekg_csv_path):
     return per_type_idx_to_name
 
 
-def extract_khop_subgraph(data, seed_nodes_init, num_hops, per_hop_limit):
-    """K-hop expansion from seed nodes, excluding causes_* edges.
-
-    Returns:
-        seed_nodes: dict[node_type -> set of global node indices]
-    """
+def extract_khop_subgraph(data_purged, seed_nodes_init, num_hops, per_hop_limit,
+                          target_edge_type):
+    """K-hop expansion from seed nodes within the purged graph."""
     seed_nodes = {nt: set(s) for nt, s in seed_nodes_init.items()}
 
     for hop in range(num_hops):
         new_nodes = {nt: set(s) for nt, s in seed_nodes.items()}
-        for edge_type in data.edge_types:
+        for edge_type in data_purged.edge_types:
             src_type, rel, dst_type = edge_type
-            # Skip causes_* edges so the explanation is in terms of
-            # biological pathways, not other ADR shortcuts.
-            if rel.startswith('causes_'):
+            # Skip the target causes_* edge during expansion so the
+            # explanation is in terms of biological pathways, not the
+            # ADR layer itself.
+            if edge_type == target_edge_type:
                 continue
             if src_type not in seed_nodes and dst_type not in seed_nodes:
                 continue
-            edge_idx = data[edge_type].edge_index
+            edge_idx = data_purged[edge_type].edge_index
             if src_type in seed_nodes:
                 src_tensor = torch.tensor(list(seed_nodes[src_type]))
                 mask = torch.isin(edge_idx[0], src_tensor)
@@ -130,27 +146,26 @@ def extract_khop_subgraph(data, seed_nodes_init, num_hops, per_hop_limit):
     return seed_nodes
 
 
-def build_local_subgraph(data, seed_nodes, target_src, target_dst, target_edge_type):
-    """Build a HeteroData subgraph containing only nodes in seed_nodes,
-    with edge indices remapped to local subgraph indices.
-    """
+def build_local_subgraph(data_purged, seed_nodes, target_src, target_dst,
+                         target_edge_type):
+    """Build a HeteroData subgraph containing only nodes in seed_nodes."""
     batch = HeteroData()
     node_remap = {}
     for nt, nodes in seed_nodes.items():
         nodes_list = sorted(nodes)
         node_remap[nt] = {g: l for l, g in enumerate(nodes_list)}
-        if hasattr(data[nt], 'x') and data[nt].x is not None:
-            batch[nt].x = data[nt].x[nodes_list]
+        if hasattr(data_purged[nt], 'x') and data_purged[nt].x is not None:
+            batch[nt].x = data_purged[nt].x[nodes_list]
         batch[nt].n_id = torch.tensor(nodes_list, dtype=torch.long)
         batch[nt].num_nodes = len(nodes_list)
 
-    for edge_type in data.edge_types:
+    for edge_type in data_purged.edge_types:
         src_type, _, dst_type = edge_type
         if src_type not in seed_nodes or dst_type not in seed_nodes:
             continue
         src_set = set(seed_nodes[src_type])
         dst_set = set(seed_nodes[dst_type])
-        edge_idx = data[edge_type].edge_index
+        edge_idx = data_purged[edge_type].edge_index
         src_tensor = torch.tensor(list(src_set))
         dst_tensor = torch.tensor(list(dst_set))
         mask = torch.isin(edge_idx[0], src_tensor) & torch.isin(edge_idx[1], dst_tensor)
@@ -199,7 +214,7 @@ def edge_occlusion_ablation(model, batch, target_edge_type, baseline_logit, top_
                 all_scores.append((importance, edge_type, src_local, dst_local))
 
     all_scores.sort(reverse=True, key=lambda x: x[0])
-    return all_scores[:top_k], clean_edges
+    return all_scores[:top_k]
 
 
 def render_subgraph(G, src_drug_name, dst_drug_name, target_adr, top_k, output_path):
@@ -294,36 +309,37 @@ def render_subgraph(G, src_drug_name, dst_drug_name, target_adr, top_k, output_p
     plt.axis('off')
     plt.tight_layout()
 
-    os.makedirs(os.path.dirname(output_path), exist_ok=True)
+    os.makedirs(os.path.dirname(output_path) or '.', exist_ok=True)
     plt.savefig(output_path, dpi=200, bbox_inches='tight', facecolor='white')
     plt.close()
 
 
-def load_model_with_prefix_handling(model, model_path, device):
-    """Load checkpoint into FullMTPModel; handle encoder.* prefix mismatch
-    between checkpoint and model.
+def load_model_with_materialization(model, model_path, x_dict, edge_dict, device):
+    """Materialize lazy Linear(-1, h) layers via a dummy forward pass,
+    then load the checkpoint with strict=True.
+
+    This is the critical fix from the evaluate_all_adrs.py debugging:
+    PyG lazy modules silently discard loaded weights if not materialized.
     """
-    state_dict = torch.load(model_path, map_location='cpu', weights_only=True)
-    model_keys = list(model.state_dict().keys())
-    ckpt_keys = list(state_dict.keys())
-
-    need_prefix = (any(k.startswith('encoder.') for k in model_keys)
-                   and not any(k.startswith('encoder.') for k in ckpt_keys))
-    remove_prefix = (not any(k.startswith('encoder.') for k in model_keys)
-                     and any(k.startswith('encoder.') for k in ckpt_keys))
-
-    if need_prefix:
-        state_dict = {f'encoder.{k}': v for k, v in state_dict.items()}
-        print("  Added 'encoder.' prefix to checkpoint keys")
-    elif remove_prefix:
-        state_dict = {k.replace('encoder.', '', 1): v for k, v in state_dict.items()}
-        print("  Removed 'encoder.' prefix from checkpoint keys")
-
-    model_keys_set = set(model.state_dict().keys())
-    filtered_state_dict = {k: v for k, v in state_dict.items() if k in model_keys_set}
-    model.load_state_dict(filtered_state_dict, strict=False)
-    print(f"  Loaded {len(filtered_state_dict)}/{len(state_dict)} weight tensors")
     model.to(device).eval()
+    # STEP 1: Dummy forward to materialize lazy layers
+    with torch.no_grad():
+        _ = model.encoder(x_dict, edge_dict)
+    print("  Lazy layers materialized via dummy forward")
+
+    # STEP 2: Load checkpoint
+    state_dict = torch.load(model_path, map_location=device, weights_only=True)
+    print(f"  Checkpoint has {len(state_dict)} keys")
+
+    # Add 'encoder.' prefix if needed
+    sample_key = next(iter(state_dict.keys()))
+    if not sample_key.startswith('encoder.'):
+        state_dict = {f'encoder.{k}': v for k, v in state_dict.items()}
+        print(f"  Added 'encoder.' prefix to checkpoint keys")
+
+    # STEP 3: Load with strict=True
+    result = model.load_state_dict(state_dict, strict=True)
+    print(f"  Loaded strict=True (no missing/unexpected keys)")
     return model
 
 
@@ -334,13 +350,13 @@ def main(args):
     print(f"Hops: {args.hops}, per-hop limit: {args.per_hop_limit}, top-K: {args.top_k}")
 
     # 1. Load graph and ClinicalBERT drug features
-    print("\n[1/8] Loading graph and ClinicalBERT features...")
+    print("\n[1/9] Loading graph and ClinicalBERT features...")
     data = torch.load(args.graph_path, map_location='cpu', weights_only=False)
     real_features = torch.load(args.feature_path, map_location='cpu', weights_only=False)
     data['drug'].x = real_features
 
     # 2. Identify target edge by exact name match
-    print("\n[2/8] Identifying target edge type...")
+    print("\n[2/9] Identifying target edge type...")
     target_edge_name = f"causes_{args.target_adr}"
     matching = [et for et in data.edge_types if et[1] == target_edge_name]
     if not matching:
@@ -353,10 +369,15 @@ def main(args):
     target_edge_type = matching[0]
     print(f"  Target edge: {target_edge_type}")
 
-    # 3. Resolve trained model path
+    # 3. PURGE non-target ADR edge types (CRITICAL: matches training)
+    print("\n[3/9] Purging non-target causes_* edge types...")
+    data_purged, purged_count = build_purged_graph(data, target_edge_type)
+    print(f"  Purged {purged_count} non-target ADR edge types. "
+          f"Kept {len(data_purged.edge_types)} edge types.")
+
+    # 4. Resolve trained model path
     model_path = args.model_path
     if model_path is None:
-        # Auto-discover from ADR name
         candidate1 = f"Results/Phase2_TAG_Model_{args.target_adr}.pth"
         candidate2 = "Results/Phase2_TAG_Model.pth"  # legacy filename
         if os.path.exists(candidate1):
@@ -369,30 +390,36 @@ def main(args):
             )
     print(f"  Model: {model_path}")
 
-    # 4. Pick a representative target drug pair (first positive edge)
-    print("\n[3/8] Selecting target drug pair (first positive edge)...")
-    target_src = data[target_edge_type].edge_index[0, 0].item()
-    target_dst = data[target_edge_type].edge_index[1, 0].item()
+    # 5. Pick a representative target drug pair (first positive edge)
+    print("\n[4/9] Selecting target drug pair (first positive edge)...")
+    target_src = data_purged[target_edge_type].edge_index[0, 0].item()
+    target_dst = data_purged[target_edge_type].edge_index[1, 0].item()
     print(f"  Drug pair: drug_{target_src} + drug_{target_dst}")
 
-    # 5. Load model
-    print("\n[4/8] Loading trained model with prefix handling...")
-    model = FullMTPModel(data.metadata(), 128, 64)
-    model = load_model_with_prefix_handling(model, model_path, device)
+    # 6. Build model with PURGED metadata and load weights properly
+    print("\n[5/9] Loading trained model (purged metadata + lazy materialization)...")
+    model = FullMTPModel(data_purged.metadata(), 128, 64)
+    x_dict_full = {nt: data_purged[nt].x.to(device) for nt in data_purged.node_types}
+    edge_dict_full = {et: data_purged[et].edge_index.to(device)
+                      for et in data_purged.edge_types}
+    model = load_model_with_materialization(
+        model, model_path, x_dict_full, edge_dict_full, device
+    )
 
-    # 6. Extract k-hop subgraph
-    print(f"\n[5/8] Extracting {args.hops}-hop subgraph "
+    # 7. Extract k-hop subgraph from purged graph
+    print(f"\n[6/9] Extracting {args.hops}-hop subgraph "
           f"(per-hop limit={args.per_hop_limit})...")
     seed_nodes_init = {'drug': {target_src, target_dst}}
     seed_nodes = extract_khop_subgraph(
-        data, seed_nodes_init,
-        num_hops=args.hops, per_hop_limit=args.per_hop_limit
+        data_purged, seed_nodes_init,
+        num_hops=args.hops, per_hop_limit=args.per_hop_limit,
+        target_edge_type=target_edge_type
     )
 
-    # 7. Build local subgraph and compute baseline logit
-    print("\n[6/8] Building local subgraph and computing baseline logit...")
+    # 8. Build local subgraph and compute baseline logit
+    print("\n[7/9] Building local subgraph and computing baseline logit...")
     batch, local_src, local_dst = build_local_subgraph(
-        data, seed_nodes, target_src, target_dst, target_edge_type
+        data_purged, seed_nodes, target_src, target_dst, target_edge_type
     )
     batch = batch.to(device)
 
@@ -416,9 +443,9 @@ def main(args):
         ).item()
     print(f"  Baseline logit: {baseline_logit:.4f}")
 
-    # 8. Run counterfactual edge-occlusion ablation
-    print(f"\n[7/8] Running edge-occlusion ablation over {total_edges} edges...")
-    top_edges, _ = edge_occlusion_ablation(
+    # 9. Run counterfactual edge-occlusion ablation
+    print(f"\n[8/9] Running edge-occlusion ablation over {total_edges} edges...")
+    top_edges = edge_occlusion_ablation(
         model, batch, target_edge_type, baseline_logit, args.top_k
     )
     if not top_edges:
@@ -427,8 +454,8 @@ def main(args):
     print(f"  Top {len(top_edges)} edges identified. "
           f"Best importance: {top_edges[0][0]:.4f}")
 
-    # 9. Build name lookup and assemble visualization
-    print("\n[8/8] Building name lookup and rendering visualization...")
+    # 10. Build name lookup and assemble visualization
+    print("\n[9/9] Building name lookup and rendering visualization...")
     per_type_idx_to_name = build_name_lookup(args.nodes_csv, args.primekg_csv)
 
     def get_name(node_type, local_idx):
@@ -482,32 +509,26 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(
         description="Counterfactual edge-occlusion explainability "
-                    "for trained polypharmacy GNN models."
+                    "for trained polypharmacy GNN models (v3, bug-fixed)."
     )
 
-    # Target ADR
     parser.add_argument("--target_adr", type=str, required=True,
-                        help="Target ADR name (without 'causes_' prefix). "
-                             "Must match a trained model.")
-
-    # Explanation hyperparameters
+                        help="Target ADR name (without 'causes_' prefix).")
     parser.add_argument("--hops", type=int, default=2, choices=[1, 2],
-                        help="Number of hops for local subgraph extraction (default: 2)")
+                        help="Number of hops for local subgraph (default: 2)")
     parser.add_argument("--per_hop_limit", type=int, default=5,
-                        help="Max neighbors per source-relation pair per hop (default: 5)")
+                        help="Max neighbors per source-relation per hop (default: 5)")
     parser.add_argument("--top_k", type=int, default=10,
                         help="Number of top edges to visualize (default: 10)")
 
-    # Paths
     parser.add_argument("--graph_path", type=str, default="Data/MTP_Graph.pt")
     parser.add_argument("--feature_path", type=str, default="Data/real_drug_features.pt")
     parser.add_argument("--model_path", type=str, default=None,
-                        help="Path to trained model. If None, auto-discovered "
-                             "from --target_adr.")
+                        help="Path to trained model (auto-discovered if None)")
     parser.add_argument("--nodes_csv", type=str, default="Data/nodes.csv")
     parser.add_argument("--primekg_csv", type=str, default="Data/kg.csv")
     parser.add_argument("--output", type=str, default=None,
-                        help="Output PNG path. If None, auto-named from --target_adr.")
+                        help="Output PNG path (auto-named if None)")
 
     args = parser.parse_args()
     main(args)

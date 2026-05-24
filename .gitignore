@@ -1,6 +1,116 @@
+# =========================================================
+# Virtual environments (CRITICAL: must come early)
+# =========================================================
 mtp_env/
-__pycache__/
-*.pyc
+.venv/
+venv/
+env/
+.env
+ENV/
 
+# =========================================================
+# Data files (excluded for license + size reasons)
+# =========================================================
+data/
 Data/
-Results/
+*.pt
+*.tsv
+bio-decagon-*.csv
+kg.csv
+nodes.csv
+drug_features.csv
+disease_features.csv
+drug-mappings.tsv
+MTP_Graph.pt
+real_drug_features.pt
+
+# =========================================================
+# Trained models (too large for repo; retrainable)
+# =========================================================
+*.pth
+*.pkl
+results/Phase2_TAG_Model*.pth
+Results/*.pth
+
+# =========================================================
+# Raw HPC logs (use summary files instead)
+# =========================================================
+logs/
+*.slurm.out
+*.slurm.err
+slurm-*.out
+train_adr_train_*.out
+train_adr_train_*.err
+test_*.out
+test_*.err
+eval_*.out
+eval_*.err
+
+# =========================================================
+# Python
+# =========================================================
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+.eggs/
+.installed.cfg
+*.egg
+.pytest_cache/
+.mypy_cache/
+
+# =========================================================
+# Jupyter
+# =========================================================
+.ipynb_checkpoints/
+*.ipynb_checkpoints
+
+# =========================================================
+# LaTeX build artifacts
+# =========================================================
+*.aux
+*.bbl
+*.blg
+*.toc
+*.lof
+*.lot
+*.fls
+*.fdb_latexmk
+*.synctex.gz
+*.synctex(busy)
+thesis/*.aux
+thesis/*.log
+thesis/*.bbl
+thesis/*.blg
+thesis/*.toc
+thesis/*.out
+thesis/*.lof
+thesis/*.lot
+thesis/*.fls
+thesis/*.fdb_latexmk
+thesis/*.synctex.gz
+
+# =========================================================
+# OS files
+# =========================================================
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
+*~
+.vscode/
+.idea/
+
+# =========================================================
+# Backup / archive files
+# =========================================================
+*.tar
+*.tar.gz
+*.zip
+Old_Logs_And_Scripts/
+WhyADR/
+polymech/
+virat/
+*_BACKUP_*/

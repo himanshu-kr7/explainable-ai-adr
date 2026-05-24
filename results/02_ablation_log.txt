@@ -1,0 +1,40 @@
+==========================================
+SLURM_CLUSTER_NAME = paramaryabhatta
+SLURM_ARRAY_JOB_ID = 
+SLURM_ARRAY_TASK_ID = 
+SLURM_ARRAY_TASK_COUNT = 
+SLURM_ARRAY_TASK_MAX = 
+SLURM_ARRAY_TASK_MIN = 
+SLURM_JOB_ACCOUNT = iitp
+SLURM_JOB_ID = 39094
+SLURM_JOB_NAME = MTP_Explain
+SLURM_JOB_NODELIST = racn115
+SLURM_JOB_USER = himanshuk_iitp
+SLURM_JOB_UID = 65759
+SLURM_JOB_PARTITION = gpu
+SLURM_TASK_PID = 1544958
+SLURM_SUBMIT_DIR = /home/himanshuk_iitp/MTP_Final
+SLURM_CPUS_ON_NODE = 4
+SLURM_NTASKS = 
+SLURM_TASK_PID = 1544958
+==========================================
+Job started!
+/home/himanshuk_iitp/miniconda3/envs/mtp_env/lib/python3.10/site-packages/torch_geometric/loader/link_neighbor_loader.py:252: UserWarning: Using 'NeighborSampler' without a 'pyg-lib' installation is deprecated and will be removed soon. Please install 'pyg-lib' for accelerated neighborhood sampling
+  neighbor_sampler = NeighborSampler(
+--- LAUNCHING PHASE 3: BIOMEDICAL EXPLAINER ---
+Loading Graph and Honest Model...
+Extracting sub-graph for a causes_thrombocytopenia prediction...
+Subgraph extracted! Nodes: 1098, Edges: 1551
+
+Running Occlusion Analysis (Ablation Study)...
+Filtering empty edge types...
+Baseline Confident Score: 1358.3948
+Testing 1,500+ edges one-by-one. This will take ~5 seconds...
+
+🏆 TOP 5 BIOLOGICAL REASONS FOR THIS SIDE EFFECT 🏆
+#1 [Rel. Power: 1.0000 | Logit Drop: 65.3998] -> Connection: effect/phenotype --(drug_effect)--> drug
+#2 [Rel. Power: 0.8001 | Logit Drop: 52.3265] -> Connection: disease --(disease_phenotype_positive)--> effect/phenotype
+#3 [Rel. Power: 0.7219 | Logit Drop: 47.2101] -> Connection: effect/phenotype --(drug_effect)--> drug
+#4 [Rel. Power: 0.7161 | Logit Drop: 46.8358] -> Connection: disease --(disease_phenotype_positive)--> effect/phenotype
+#5 [Rel. Power: 0.6962 | Logit Drop: 45.5336] -> Connection: effect/phenotype --(drug_effect)--> drug
+Job finished!
