@@ -46,8 +46,7 @@ Three sequential phases:
 │   ├── phase2_gnn/         Feature encoder, training, evaluation
 │   └── phase3_explainability/  Subgraph visualization with edge occlusion
 ├── hpc/                    SLURM batch scripts for training
-├── results/                Evaluation outputs and case-study visualizations
-├── thesis/                 LaTeX source and compiled PDF
+├── results/                Evaluation outputs and case-study visualizations              
 └── docs/                   Data-setup instructions
 ```
 
