@@ -1,5 +1,5 @@
 """
-Multi-ADR Consolidated Evaluation Script
+Multi-ADR Consolidated Evaluation Script (v2 — bugfixed)
 
 Evaluates all four trained TAG-GNN models on:
   1. Random-negative protocol (standard literature benchmark)
@@ -13,6 +13,7 @@ import torch
 import torch.nn.functional as F
 import numpy as np
 from torch_geometric.nn import SAGEConv, HeteroConv, Linear
+from torch_geometric.data import HeteroData
 from sklearn.metrics import roc_auc_score, average_precision_score
 
 # -----------------------------------------------------------
@@ -36,7 +37,7 @@ np.random.seed(RANDOM_SEED)
 
 
 # -----------------------------------------------------------
-# Model definitions (must match training script)
+# Model definition (must match training script)
 # -----------------------------------------------------------
 class HeteroADRModel(torch.nn.Module):
     def __init__(self, metadata, hidden_channels, out_channels):
@@ -59,16 +60,43 @@ class HeteroADRModel(torch.nn.Module):
         return {k: self.lin_out(x) for k, x in x_dict.items()}
 
 
-def load_encoder(model_path, metadata, device):
-    encoder = HeteroADRModel(metadata, HIDDEN_DIM, OUT_DIM)
-    state_dict = torch.load(model_path, map_location='cpu', weights_only=True)
+def build_purged_graph(data, target_edge_type):
+    """Build a HeteroData containing all node types and only:
+        - non-causes_* (structural) edge types, plus
+        - the single target causes_* edge type.
+    This matches the purging that train_job.py performs.
+    """
+    data_purged = HeteroData()
+    for nt in data.node_types:
+        if hasattr(data[nt], 'x') and data[nt].x is not None:
+            data_purged[nt].x = data[nt].x
+        data_purged[nt].num_nodes = data[nt].num_nodes
+    purged_count = 0
+    for et in data.edge_types:
+        if et[1].startswith('causes_') and et != target_edge_type:
+            purged_count += 1
+            continue
+        data_purged[et].edge_index = data[et].edge_index
+    return data_purged, purged_count
+
+
+def load_encoder_with_purged_graph(model_path, data_purged, device):
+    """Construct encoder with PURGED metadata, materialize lazy layers
+    via a dummy forward pass, then load the checkpoint with strict=True.
+    """
+    encoder = HeteroADRModel(data_purged.metadata(), HIDDEN_DIM, OUT_DIM)
+    x_dict = {nt: data_purged[nt].x.to(device) for nt in data_purged.node_types}
+    edge_dict = {et: data_purged[et].edge_index.to(device) for et in data_purged.edge_types}
+    encoder.to(device).eval()
+    with torch.no_grad():
+        _ = encoder(x_dict, edge_dict)
+
+    state_dict = torch.load(model_path, map_location=device, weights_only=True)
+    # Strip 'encoder.' prefix if a wrapped model was saved
     if any(k.startswith('encoder.') for k in state_dict.keys()):
         state_dict = {k.replace('encoder.', '', 1): v for k, v in state_dict.items()}
-    encoder_keys = set(encoder.state_dict().keys())
-    filtered = {k: v for k, v in state_dict.items() if k in encoder_keys}
-    encoder.load_state_dict(filtered, strict=False)
-    encoder.to(device).eval()
-    return encoder
+    encoder.load_state_dict(state_dict, strict=True)
+    return encoder, x_dict, edge_dict
 
 
 def get_target_edge_type(data, adr_name):
@@ -77,18 +105,6 @@ def get_target_edge_type(data, adr_name):
     if not matching:
         raise ValueError(f"Edge type '{target_name}' not found in graph")
     return matching[0]
-
-
-def compute_embeddings(encoder, data, target_edge_type, device):
-    edge_index_dict = {
-        et: data[et].edge_index.to(device)
-        for et in data.edge_types
-        if et != target_edge_type
-    }
-    x_dict = {nt: data[nt].x.to(device) for nt in data.node_types}
-    with torch.no_grad():
-        z_dict = encoder(x_dict, edge_index_dict)
-    return z_dict['drug']
 
 
 def evaluate_random_negatives(z_drug, pos_edges, num_drugs, device):
@@ -125,7 +141,11 @@ def evaluate_random_negatives(z_drug, pos_edges, num_drugs, device):
     return roc_auc_score(y_true, y_score), average_precision_score(y_true, y_score)
 
 
-def evaluate_hard_negatives(z_drug, pos_edges, data, target_edge_type, device):
+def evaluate_hard_negatives(z_drug, pos_edges, data_full, target_edge_type, device):
+    """Hard negatives = drug pairs known to cause SOME OTHER ADR.
+
+    Note: must use the FULL graph (not purged) to gather "other" pairs.
+    """
     num_pos = pos_edges.size(1)
     target_set = set()
     for i in range(num_pos):
@@ -134,12 +154,12 @@ def evaluate_hard_negatives(z_drug, pos_edges, data, target_edge_type, device):
         target_set.add((v, u))
 
     other_pairs = []
-    for et in data.edge_types:
+    for et in data_full.edge_types:
         if et == target_edge_type:
             continue
         if not et[1].startswith('causes_'):
             continue
-        edge_idx = data[et].edge_index
+        edge_idx = data_full[et].edge_index
         for i in range(edge_idx.size(1)):
             u, v = edge_idx[0, i].item(), edge_idx[1, i].item()
             if (u, v) not in target_set and (v, u) not in target_set:
@@ -190,19 +210,37 @@ def main():
 
         try:
             target_edge_type = get_target_edge_type(data, adr_name)
-            pos_edges = data[target_edge_type].edge_index.to(device)
-            num_pos = pos_edges.size(1)
             print(f"  Target edge: {target_edge_type}", flush=True)
+
+            # Build the PURGED graph (matching what training did)
+            data_purged, purged_count = build_purged_graph(data, target_edge_type)
+            print(f"  Purged {purged_count} non-target ADR edge types. "
+                  f"Kept {len(data_purged.edge_types)}.", flush=True)
+
+            pos_edges = data_purged[target_edge_type].edge_index.to(device)
+            num_pos = pos_edges.size(1)
             print(f"  Positive examples: {num_pos}", flush=True)
 
-            encoder = load_encoder(model_path, data.metadata(), device)
-            z_drug = compute_embeddings(encoder, data, target_edge_type, device)
+            # Load encoder with materialized lazy layers, then strict load
+            encoder, x_dict, edge_dict = load_encoder_with_purged_graph(
+                model_path, data_purged, device
+            )
 
-            rnd_roc, rnd_pr = evaluate_random_negatives(z_drug, pos_edges, num_drugs, device)
-            print(f"  Random-neg:  ROC-AUC = {rnd_roc:.4f}, PR-AUC = {rnd_pr:.4f}", flush=True)
+            # Compute embeddings on purged graph (matches training input)
+            with torch.no_grad():
+                z_drug = encoder(x_dict, edge_dict)['drug']
 
-            hrd_roc, hrd_pr = evaluate_hard_negatives(z_drug, pos_edges, data, target_edge_type, device)
-            print(f"  Hard-neg:    ROC-AUC = {hrd_roc:.4f}, PR-AUC = {hrd_pr:.4f}", flush=True)
+            rnd_roc, rnd_pr = evaluate_random_negatives(
+                z_drug, pos_edges, num_drugs, device
+            )
+            print(f"  Random-neg:  ROC-AUC = {rnd_roc:.4f}, PR-AUC = {rnd_pr:.4f}",
+                  flush=True)
+
+            hrd_roc, hrd_pr = evaluate_hard_negatives(
+                z_drug, pos_edges, data, target_edge_type, device
+            )
+            print(f"  Hard-neg:    ROC-AUC = {hrd_roc:.4f}, PR-AUC = {hrd_pr:.4f}",
+                  flush=True)
 
             results.append({
                 "adr": adr_name, "num_pos": num_pos,
