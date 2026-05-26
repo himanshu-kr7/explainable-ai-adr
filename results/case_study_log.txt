@@ -1,0 +1,58 @@
+Device: cpu
+Target ADR: thrombocytopenia
+Hops: 2, per-hop limit: 5, top-K: 5
+
+[1/9] Loading graph and ClinicalBERT features...
+
+[2/9] Identifying target edge type...
+  Target edge: ('drug', 'causes_thrombocytopenia', 'drug')
+
+[3/9] Purging non-target causes_* edge types...
+  Purged 1308 non-target ADR edge types. Kept 51 edge types.
+  Model: results/Phase2_TAG_Model.pth
+
+[4/9] Selecting target drug pair (first positive edge)...
+  Drug pair: drug_310 + drug_1316
+
+[5/9] Loading trained model (purged metadata + lazy materialization)...
+  Lazy layers materialized via dummy forward
+  Checkpoint has 328 keys
+  Added 'encoder.' prefix to checkpoint keys
+  Loaded strict=True (no missing/unexpected keys)
+
+[6/9] Extracting 2-hop subgraph (per-hop limit=5)...
+  After hop 1: drug=11, gene/protein=4, disease=5, effect/phenotype=5
+  After hop 2: drug=29, gene/protein=27, disease=37, effect/phenotype=28, molecular_function=3, cellular_component=4, biological_process=3, exposure=6, pathway=5, anatomy=4
+
+[7/9] Building local subgraph and computing baseline logit...
+  Subgraph: 146 nodes, 1295 edges
+  Baseline logit: 0.6478
+
+[8/9] Running edge-occlusion ablation over 1295 edges...
+  Top 5 edges identified. Best importance: 0.6069
+
+[9/9] Building name lookup and rendering visualization...
+Building name lookup...
+  Built name lookup for 10 node types
+
+======================================================================
+TOP RANKED EDGES (for thesis table)
+======================================================================
+#1 | Delta=0.6069 | Rel.Pow=1.0000
+     progressive external opht... (disease) --[disease_phenotype_positive]--> perichordal ring (effect/phenotype)
+#2 | Delta=0.5808 | Rel.Pow=0.9571
+     perichordal ring (effect/phenotype) --[drug_effect]--> Aminophylline (drug)
+#3 | Delta=0.5700 | Rel.Pow=0.9392
+     erythrokeratodermia varia... (disease) --[disease_phenotype_negative]--> perichordal ring (effect/phenotype)
+#4 | Delta=0.5308 | Rel.Pow=0.8746
+     perichordal ring (effect/phenotype) --[drug_effect]--> Sevoflurane (drug)
+#5 | Delta=0.0509 | Rel.Pow=0.0839
+     long QT syndrome (disease) --[disease_phenotype_positive]--> histamine catabolic process (effect/phenotype)
+======================================================================
+
+
+[Done] Visualization saved to: results/subgraph_visualization_v3.png
+  Drug pair: 'Sevoflurane' + 'Aminophylline'
+  ADR: causes_thrombocytopenia
+  Top edge importance: 0.6069
+  Subgraph size: 7 nodes, 6 edges (in viz)

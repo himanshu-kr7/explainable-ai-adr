@@ -458,6 +458,27 @@ def main(args):
     print("\n[9/9] Building name lookup and rendering visualization...")
     per_type_idx_to_name = build_name_lookup(args.nodes_csv, args.primekg_csv)
 
+    # Print ranked edges with biological names
+    print("\n" + "=" * 70)
+    print("TOP RANKED EDGES (for thesis table)")
+    print("=" * 70)
+    for rank, (importance, edge_type, src_local, dst_local) in enumerate(top_edges, 1):
+        src_type, rel, dst_type = edge_type
+        # Resolve names using the same logic as get_name
+        def _resolve(node_type, local_idx):
+            if local_idx < batch[node_type].n_id.size(0):
+                global_idx = batch[node_type].n_id[local_idx].item()
+                return per_type_idx_to_name.get(node_type, {}).get(
+                    global_idx, f"{node_type}_{global_idx}"
+                )
+            return f"{node_type}_unk"
+        src_name = _resolve(src_type, src_local)
+        dst_name = _resolve(dst_type, dst_local)
+        rel_pow = importance / top_edges[0][0]
+        print(f"#{rank} | Delta={importance:.4f} | Rel.Pow={rel_pow:.4f}")
+        print(f"     {src_name} ({src_type}) --[{rel}]--> {dst_name} ({dst_type})")
+    print("=" * 70 + "\n")
+
     def get_name(node_type, local_idx):
         if local_idx < batch[node_type].n_id.size(0):
             global_idx = batch[node_type].n_id[local_idx].item()
