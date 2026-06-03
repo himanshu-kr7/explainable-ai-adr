@@ -42,9 +42,11 @@ Three sequential phases:
 .
 ├── notebooks/              Phase 1 graph construction notebook
 ├── scripts/                All Python code
-│   ├── phase1_baselines/   RF baselines, contamination tests
-│   ├── phase2_gnn/         Feature encoder, training, evaluation
-│   └── phase3_explainability/  Subgraph visualization with edge occlusion
+│   ├── phase1_baselines/   Random Forest baselines (random + hard negative)
+│   ├── phase2_gnn/         Feature encoder, training, consolidated evaluation
+│   ├── phase3_explainability/  Subgraph visualization with edge occlusion
+│   ├── diagnostics/        Leakage/contamination tests and sanity checks (research artifacts)
+│   └── legacy_eval/        Single-ADR evaluators superseded by evaluate_all_adrs.py
 ├── hpc/                    SLURM batch scripts for training
 ├── results/                Evaluation outputs and case-study visualizations              
 └── docs/                   Data-setup instructions
@@ -127,14 +129,13 @@ Each training run takes ~2 minutes on an NVIDIA A100 (or ~10–15 minutes on CPU
 ```bash
 python scripts/phase2_gnn/evaluate_all_adrs.py
 ```
-
-Produces `results/multi_adr_results.txt` with both random-negative and hard-negative ROC-AUC and PR-AUC for all four target ADRs.
+Prints a consolidated table to standard output with both random-negative and hard-negative ROC-AUC and PR-AUC for all four target ADRs. Redirect to a file with `| tee results/multi_adr_results.txt` if you want to save it.
 
 ### Phase 3: Generate counterfactual subgraph visualizations
 
 ```bash
 python scripts/phase3_explainability/phase3_subgraph_viz.py \
-    --target_adr thrombocytopenia --hops 2 --top_k 10
+    --target_adr thrombocytopenia --hops 2 --top_k 5
 ```
 
 Repeat for `Bleeding`, `Cardiacdecompensation`, and `kidneyfailure`. Produces named subgraph PNGs in `results/`.

@@ -20,10 +20,10 @@ from sklearn.metrics import roc_auc_score, average_precision_score
 # Configuration
 # -----------------------------------------------------------
 ADR_LIST = [
-    ("thrombocytopenia", "Results/Phase2_TAG_Model.pth"),
-    ("Bleeding", "Results/Phase2_TAG_Model_Bleeding.pth"),
-    ("Cardiacdecompensation", "Results/Phase2_TAG_Model_Cardiacdecompensation.pth"),
-    ("kidneyfailure", "Results/Phase2_TAG_Model_kidneyfailure.pth"),
+    ("thrombocytopenia", "results/Phase2_TAG_Model.pth"),
+    ("Bleeding", "results/Phase2_TAG_Model_Bleeding.pth"),
+    ("Cardiacdecompensation", "results/Phase2_TAG_Model_Cardiacdecompensation.pth"),
+    ("kidneyfailure", "results/Phase2_TAG_Model_kidneyfailure.pth"),
 ]
 GRAPH_PATH = "Data/MTP_Graph.pt"
 FEATURE_PATH = "Data/real_drug_features.pt"

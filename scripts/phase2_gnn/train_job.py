@@ -219,7 +219,7 @@ if __name__ == "__main__":
     # Paths
     parser.add_argument("--graph_path", type=str, default="Data/MTP_Graph.pt")
     parser.add_argument("--feature_path", type=str, default="Data/real_drug_features.pt")
-    parser.add_argument("--save_path", type=str, default="Results/Phase2_TAG_Model.pth")
+    parser.add_argument("--save_path", type=str, default="results/Phase2_TAG_Model.pth")
 
     # Phase 2 flags
     parser.add_argument("--use_real_features", type=bool, default=True)

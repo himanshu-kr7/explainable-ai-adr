@@ -378,8 +378,8 @@ def main(args):
     # 4. Resolve trained model path
     model_path = args.model_path
     if model_path is None:
-        candidate1 = f"Results/Phase2_TAG_Model_{args.target_adr}.pth"
-        candidate2 = "Results/Phase2_TAG_Model.pth"  # legacy filename
+        candidate1 = f"results/Phase2_TAG_Model_{args.target_adr}.pth"
+        candidate2 = "results/Phase2_TAG_Model.pth"  # legacy filename
         if os.path.exists(candidate1):
             model_path = candidate1
         elif os.path.exists(candidate2) and args.target_adr == "thrombocytopenia":
@@ -514,7 +514,7 @@ def main(args):
     # Resolve output path
     output_path = args.output
     if output_path is None:
-        output_path = f"Results/subgraph_{args.target_adr}.png"
+        output_path = f"results/subgraph_{args.target_adr}.png"
 
     render_subgraph(G, src_drug_name, dst_drug_name,
                     args.target_adr, args.top_k, output_path)

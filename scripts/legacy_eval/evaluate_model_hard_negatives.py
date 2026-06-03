@@ -101,7 +101,7 @@ def load_data_with_hard_negatives(graph_path, feature_path):
 def evaluate_gnn():
     graph_path = "Data/MTP_Graph.pt"
     feature_path = "Data/real_drug_features.pt"
-    model_weights_path = "Results/Phase2_TAG_Model.pth"
+    model_weights_path = "results/Phase2_TAG_Model.pth"
 
     data, target_edge, test_pos_src, test_pos_dst, test_neg_src, test_neg_dst = \
         load_data_with_hard_negatives(graph_path, feature_path)

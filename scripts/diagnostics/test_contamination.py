@@ -139,7 +139,7 @@ def main(args):
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Target Leakage Diagnostic Test.")
     parser.add_argument("--graph_path", type=str, default="Data/MTP_Graph.pt", help="Path to compiled .pt graph")
-    parser.add_argument("--model_path", type=str, default="Results/MTP_Model_Param.pth", help="Path to trained weights")
+    parser.add_argument("--model_path", type=str, default="results/MTP_Model_Param.pth", help="Path to trained weights")
     parser.add_argument("--hidden_dim", type=int, default=128, help="Hidden channel dimension")
     parser.add_argument("--output_dim", type=int, default=64, help="Output channel dimension")
     parser.add_argument("--test_samples", type=int, default=500, help="Number of sample edges to isolate for testing")

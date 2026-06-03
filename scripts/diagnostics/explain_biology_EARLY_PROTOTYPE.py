@@ -165,7 +165,7 @@ if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Run Phase 2 Edge-Occlusion xAI Study.")
     parser.add_argument("--graph_path", type=str, default="Data/MTP_Graph.pt")
     parser.add_argument("--feature_path", type=str, default="Data/real_drug_features.pt")
-    parser.add_argument("--model_path", type=str, default="Results/Phase2_TAG_Model.pth")
+    parser.add_argument("--model_path", type=str, default="results/Phase2_TAG_Model.pth")
     parser.add_argument("--use_real_features", type=bool, default=True)
     parser.add_argument("--top_k", type=int, default=5)
     

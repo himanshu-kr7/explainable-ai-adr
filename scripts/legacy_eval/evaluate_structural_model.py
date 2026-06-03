@@ -56,7 +56,7 @@ def load_and_split_data(graph_path):
 
 def evaluate_gnn():
     graph_path = "Data/MTP_Graph.pt"
-    model_weights_path = "Results/MTP_Model_Param.pth"
+    model_weights_path = "results/MTP_Model_Param.pth"
     
     # 1. Prepare Data
     test_data, target_edge = load_and_split_data(graph_path)

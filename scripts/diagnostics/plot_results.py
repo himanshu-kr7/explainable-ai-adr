@@ -39,5 +39,5 @@ plt.xlim(0, max(logit_drops) + 15) # Leave room for the text
 plt.tight_layout()
 
 # 7. Save it in high resolution
-plt.savefig("Results/ablation_results.png", dpi=300, bbox_inches='tight')
-print("Saved publication chart as 'Results/ablation_results.png'!")
+plt.savefig("results/ablation_results.png", dpi=300, bbox_inches='tight')
+print("Saved publication chart as 'results/ablation_results.png'!")

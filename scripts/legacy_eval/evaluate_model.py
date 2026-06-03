@@ -52,7 +52,7 @@ def load_and_split_data(graph_path, feature_path):
 def evaluate_gnn():
     graph_path = "Data/MTP_Graph.pt"
     feature_path = "Data/real_drug_features.pt"
-    model_weights_path = "Results/Phase2_TAG_Model.pth"
+    model_weights_path = "results/Phase2_TAG_Model.pth"
     
     # 1. Prepare Data
     test_data, target_edge = load_and_split_data(graph_path, feature_path)
