@@ -13,3 +13,5 @@ root), but are retained for transparency of the research process.
   and prints its metadata).
 - `explain_biology_EARLY_PROTOTYPE.py` — an early edge-occlusion explainability
   prototype, superseded by `scripts/phase3_explainability/phase3_subgraph_viz.py`.
+- `plot_results.py` — one-off plotting script with hardcoded ablation
+  results; regenerates summary bar charts from saved numbers.
